@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 
 // 유저 썸네일 업로드 API (관리자 권한 불필요)
 export async function POST(req: Request) {
@@ -23,19 +21,14 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "JPG, PNG, WebP만 업로드 가능합니다." }, { status: 400 });
         }
 
-        // uploads 디렉토리 생성
-        const uploadDir = path.join(process.cwd(), "public", "uploads", "submissions");
-        await mkdir(uploadDir, { recursive: true });
-
-        // 파일 저장
-        const ext = file.name.split(".").pop() || "jpg";
-        const fileName = `sub-${Date.now()}.${ext}`;
-        const filePath = path.join(uploadDir, fileName);
-
+        // Vercel(서버리스) 환경을 위해 이미지를 Base64로 즉시 변환하여 저장
         const bytes = await file.arrayBuffer();
-        await writeFile(filePath, Buffer.from(bytes));
+        const buffer = Buffer.from(bytes);
+        const base64Data = buffer.toString("base64");
 
-        const imageUrl = `/uploads/submissions/${fileName}`;
+        // Base64 Data URL 생성
+        const imageUrl = `data:${file.type};base64,${base64Data}`;
+
         return NextResponse.json({ imageUrl });
     } catch (error) {
         console.error("Upload error:", error);

@@ -109,9 +109,9 @@ function LevelCard({
 }
 
 export default function HomeClient({ levels }: { levels: Level[] }) {
-    const mainLevels = levels.filter((l) => l.rank >= 1 && l.rank <= 25 && l.name !== "--");
-    const extendedLevels = levels.filter((l) => l.rank >= 26 && l.rank <= 50 && l.name !== "--");
-    const legacyLevels = levels.filter((l) => l.rank >= 51 && l.rank <= 100 && l.name !== "--");
+    const mainLevels = levels.filter((l) => l.rank >= 1 && l.rank <= 25);
+    const extendedLevels = levels.filter((l) => l.rank >= 26 && l.rank <= 50);
+    const legacyLevels = levels.filter((l) => l.rank >= 51 && l.rank <= 100);
 
     return (
         <div className="relative isolate z-0">

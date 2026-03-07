@@ -104,24 +104,39 @@ export default function SubmitPage() {
         setIsSubmitting(true);
 
         try {
-            // 1단계: 썸네일 업로드 (있는 경우)
             let imageUrl: string | null = null;
+
+            // 1단계: 브라우저에서 직접 이미지를 안전한 크기로 압축 및 Base64 변환
             if (thumbnailFile) {
-                const uploadData = new FormData();
-                uploadData.append("file", thumbnailFile);
-                const uploadRes = await fetch("/api/submissions/upload", {
-                    method: "POST",
-                    body: uploadData,
+                imageUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(thumbnailFile);
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.src = event.target?.result as string;
+                        img.onload = () => {
+                            const canvas = document.createElement("canvas");
+                            let { width, height } = img;
+                            const MAX_SIZE = 800;
+
+                            if (width > height && width > MAX_SIZE) {
+                                height *= MAX_SIZE / width;
+                                width = MAX_SIZE;
+                            } else if (height > MAX_SIZE) {
+                                width *= MAX_SIZE / height;
+                                height = MAX_SIZE;
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext("2d");
+                            ctx?.drawImage(img, 0, 0, width, height);
+                            resolve(canvas.toDataURL("image/jpeg", 0.7));
+                        };
+                        img.onerror = (e) => reject(e);
+                    };
+                    reader.onerror = (e) => reject(e);
                 });
-                if (uploadRes.ok) {
-                    const uploadResult = await uploadRes.json();
-                    imageUrl = uploadResult.imageUrl;
-                } else {
-                    const uploadErr = await uploadRes.json();
-                    setError(uploadErr.error || "썸네일 업로드에 실패했습니다.");
-                    setIsSubmitting(false);
-                    return;
-                }
             }
 
             // 2단계: 제출 데이터 전송
@@ -141,8 +156,9 @@ export default function SubmitPage() {
                 const data = await res.json();
                 setError(data.error || "제출에 실패했습니다.");
             }
-        } catch {
-            setError("서버와 통신할 수 없습니다.");
+        } catch (err: any) {
+            console.error("Submission error:", err);
+            setError("제출 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
         } finally {
             setIsSubmitting(false);
         }
