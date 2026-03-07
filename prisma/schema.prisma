@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Level {
+  id        Int      @id @default(autoincrement())
+  rank      Int      @unique
+  name      String   @default("--")
+  creator   String   @default("--")
+  verifier  String   @default("--")
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Submission {
+  id        Int      @id @default(autoincrement())
+  levelName String
+  publisher String
+  levelId   String
+  videoUrl  String
+  imageUrl  String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

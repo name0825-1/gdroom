@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* Primary brand color - Electric Cyan / Purple */
+  --color-accent-blue: #0ea5e9;
+  --color-accent-purple: #8b5cf6;
+
+  --font-sans: var(--font-inter), var(--font-geist-sans), ui-sans-serif, system-ui;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular;
+}
+
+/* 다크 모드 강제 - 라이트 모드 비활성화 */
+:root {
+  --background: #09090b;
+  --foreground: #f4f4f5;
+  --surface-color: #18191c;
+  --surface-border: rgba(255, 255, 255, 0.08);
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Pointercrate 스타일 레벨 카드 */
+@layer utilities {
+  .glass-panel {
+    background-color: rgba(24, 25, 28, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--surface-border);
+  }
+
+
+  .level-card {
+    background: linear-gradient(135deg, rgba(24, 25, 28, 0.8), rgba(15, 15, 17, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .level-card:hover {
+    border-color: rgba(14, 165, 233, 0.5);
+    box-shadow:
+      0 0 25px rgba(14, 165, 233, 0.15),
+      0 8px 32px rgba(0, 0, 0, 0.4);
+    transform: translateY(-4px);
+  }
+
+  .rank-1-style {
+    border-color: rgba(255, 215, 0, 0.4) !important;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.05), rgba(15, 15, 17, 0.9)) !important;
+  }
+
+  .rank-1-style:hover {
+    border-color: rgba(255, 215, 0, 0.8) !important;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.2), 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .rank-2-style {
+    border-color: rgba(192, 192, 192, 0.3) !important;
+    background: linear-gradient(135deg, rgba(192, 192, 192, 0.05), rgba(15, 15, 17, 0.9)) !important;
+  }
+
+  .rank-2-style:hover {
+    border-color: rgba(192, 192, 192, 0.7) !important;
+    box-shadow: 0 0 30px rgba(192, 192, 192, 0.2), 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .rank-3-style {
+    border-color: rgba(205, 127, 50, 0.3) !important;
+    background: linear-gradient(135deg, rgba(205, 127, 50, 0.05), rgba(15, 15, 17, 0.9)) !important;
+  }
+
+  .rank-3-style:hover {
+    border-color: rgba(205, 127, 50, 0.7) !important;
+    box-shadow: 0 0 30px rgba(205, 127, 50, 0.2), 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .section-divider {
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.8), rgba(14, 165, 233, 0.8), transparent);
+    height: 2px;
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
+  }
+
+  /* animate-in 유틸리티 (Tailwind CSS v4에서 기본 미제공) */
+  .animate-in {
+    animation-duration: 200ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    animation-fill-mode: both;
+  }
+
+  .fade-in {
+    animation-name: fadeIn;
+  }
+
+  .slide-in-from-top-4 {
+    animation-name: slideInFromTop4;
+  }
+
+  .slide-in-from-top-10 {
+    animation-name: slideInFromTop10;
+  }
+}
+
+/* animate-in 키프레임 정의 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromTop4 {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromTop10 {
+  from {
+    opacity: 0;
+    transform: translateY(-2.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
