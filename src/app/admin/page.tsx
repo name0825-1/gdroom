@@ -180,6 +180,35 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleNewLevelImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                let { width, height } = img;
+                const MAX_SIZE = 800;
+                if (width > height && width > MAX_SIZE) {
+                    height *= MAX_SIZE / width;
+                    width = MAX_SIZE;
+                } else if (height > MAX_SIZE) {
+                    width *= MAX_SIZE / height;
+                    height = MAX_SIZE;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx?.drawImage(img, 0, 0, width, height);
+                setNewLevelData({ ...newLevelData, imageUrl: canvas.toDataURL("image/jpeg", 0.7) });
+            };
+        };
+    };
+
     // PUT: 순위 변경 및 텍스트 데이터 덮어쓰기
     const handleSave = async (level: Level) => {
         setSaving(level.id);
@@ -448,6 +477,25 @@ export default function AdminDashboard() {
                             </button>
                         )}
                         <div className="space-y-4">
+                            <div className="flex flex-col items-center gap-2">
+                                <label className="w-full text-xs font-bold text-zinc-500">Thumbnail Image</label>
+                                <div className="group relative h-32 w-full overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 flex items-center justify-center">
+                                    {newLevelData.imageUrl ? (
+                                        <img src={newLevelData.imageUrl} className="h-full w-full object-cover" />
+                                    ) : (
+                                        <div className="flex flex-col items-center text-zinc-600">
+                                            <ImageIcon className="h-8 w-8 mb-1" />
+                                            <span className="text-[10px] uppercase font-bold tracking-wider">NO IMAGE</span>
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                        <label className="cursor-pointer rounded-lg bg-cyan-600/80 hover:bg-cyan-500 px-4 py-2 text-xs font-bold text-white shadow-lg transition-all">
+                                            {newLevelData.imageUrl ? "CHANGE" : "UPLOAD IMAGE"}
+                                            <input type="file" className="hidden" accept="image/*" onChange={handleNewLevelImage} />
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
                             <div>
                                 <label className="mb-1 block text-xs font-bold text-zinc-500">INSERT RANK (1 ~ 200)</label>
                                 <input
@@ -535,8 +583,10 @@ export default function AdminDashboard() {
                                             <span className="text-[10px] font-bold tracking-widest uppercase">NO RECORD IMAGE</span>
                                         </div>
                                     )}
-                                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                                        <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-lg bg-white/10 px-4 py-2 text-xs font-bold backdrop-blur-md">CHANGE IMAGE</button>
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                        <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-lg bg-cyan-600/80 hover:bg-cyan-500 transition-all px-4 py-2 text-xs font-bold text-white shadow-lg shadow-cyan-900/50">
+                                            업로드 / 변경 (Upload Image)
+                                        </button>
                                     </div>
                                 </div>
                             </div>
