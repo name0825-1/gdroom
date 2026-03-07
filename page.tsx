@@ -106,13 +106,36 @@ export default function SubmitPage() {
         try {
             let imageUrl: string | null = null;
 
-            // 1단계: 브라우저에서 직접 이미지를 Base64로 변환 (서버리스 업로드 에러 방지)
+            // 1단계: 브라우저에서 직접 이미지를 안전한 크기로 압축 및 Base64 변환
             if (thumbnailFile) {
                 imageUrl = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result as string);
-                    reader.onerror = (e) => reject(e);
                     reader.readAsDataURL(thumbnailFile);
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.src = event.target?.result as string;
+                        img.onload = () => {
+                            const canvas = document.createElement("canvas");
+                            let { width, height } = img;
+                            const MAX_SIZE = 800;
+
+                            if (width > height && width > MAX_SIZE) {
+                                height *= MAX_SIZE / width;
+                                width = MAX_SIZE;
+                            } else if (height > MAX_SIZE) {
+                                width *= MAX_SIZE / height;
+                                height = MAX_SIZE;
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext("2d");
+                            ctx?.drawImage(img, 0, 0, width, height);
+                            resolve(canvas.toDataURL("image/jpeg", 0.7));
+                        };
+                        img.onerror = (e) => reject(e);
+                    };
+                    reader.onerror = (e) => reject(e);
                 });
             }
 
