@@ -58,21 +58,35 @@ export async function POST(req: Request) {
                 await tx.level.delete({ where: { id: levelAt200.id } });
             }
 
-            // STEP 2. 삽입할 위치부터 199위까지의 레벨들을 한 칸씩 뒤로 밀기 (Push Down Shift logic)
-            // 충돌 방지를 위해 역순(desc)으로 업데이트
-            const affectedLevels = await tx.level.findMany({
-                where: { rank: { gte: targetRank, lt: 200 } },
-                orderBy: { rank: "desc" },
-            });
+            // STEP 2. 삽입할 위치부터 199위까지의 레벨들을 안전하게 한 칸씩 뒤로 밀기 (Two-Phase Raw SQL Shift)
+            // [AI ANALYSIS NOTE - CRITICAL ARCHITECTURE]
+            // 이 부분은 레벨 중간 삽입 시 하위 순위들을 모두 +1 처리하는 핵심 로직입니다.
+            // Prisma의 updateMany()나 for-loop 업데이트를 사용하지 않는 이유는 다음과 같습니다:
+            // 1. for-loop: 199번의 개별 쿼리가 발생하여 Vercel Serverless 환경에서 P2028 Transaction Timeout 유발.
+            // 2. updateMany: 단일 쿼리로 최적화되지만, PostgreSQL의 rank 컬럼에 걸린 @unique 제약 조건 때문에
+            //    순차 업데이트 도중 일시적으로 순위가 겹치는 현상(Collision)이 발생하여 에러 통과 불가.
+            // 
+            // 해결책으로 'Two-Phase Shift (임시 공간 대피)' 전략을 사용합니다:
+            // Phase A: 변경될 맵들의 순위에 임의의 아주 큰 수(+10000)를 더해 기존 1~200위 범위 밖으로 완전히 피신시킵니다.
+            //          이렇게 하면 업데이트 중에 절대 기존 맵들과 Unique 제약 조건 충돌이 일어나지 않습니다.
+            const TEMP_OFFSET = 10000;
 
-            for (const level of affectedLevels) {
-                await tx.level.update({
-                    where: { id: level.id },
-                    data: { rank: level.rank + 1 },
-                });
-            }
+            // Phase A: 대상 맵들을 안전한 곳(10000 밖)으로 임시 대피
+            await tx.$executeRawUnsafe(
+                `UPDATE "Level" SET rank = rank + $1 WHERE rank >= $2 AND rank < 200`,
+                TEMP_OFFSET, targetRank
+            );
 
-            // 3. 비어있는 순위에 새 레벨 생성
+            // Phase B: 피신해 있던 맵들의 임시 값을 빼줌과 동시에, 원래 맵이 이동했어야 할 목표지점(+1)으로 되돌려 놓습니다.
+            // 공식: rank = rank - TEMP_OFFSET + 1
+            await tx.$executeRawUnsafe(
+                `UPDATE "Level" SET rank = rank - $1 + 1 WHERE rank >= $2 AND rank < $3`,
+                TEMP_OFFSET,
+                TEMP_OFFSET + targetRank,
+                TEMP_OFFSET + 200
+            );
+
+            // STEP 3. 비어있는 순위에 새 레벨 생성
             const newLevel = await tx.level.create({
                 data: {
                     rank: targetRank,

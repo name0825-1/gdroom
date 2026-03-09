@@ -39,6 +39,21 @@ interface Submission {
     createdAt: string;
 }
 
+/**
+ * [AI ANALYSIS NOTE - ADMIN DASHBOARD OVERVIEW]
+ * 
+ * 이 파일은 GDRMCL의 핵심 관리 시스템인 Admin Dashboard입니다 (800+ 라인).
+ * AI 분석 시 다음 기능들을 유의해서 관찰하십시오:
+ * 
+ * 1. 인증 로직 (Auth): useEffect 안의 checkAuth()를 통해 세션을 검증하며, 실패 시 로그인 페이지로 강제 리다이렉션합니다.
+ * 2. 탭 시스템: '레벨 관리(levels)'와 '제출된 기록(submissions)' 두 개의 탭으로 나뉩니다.
+ * 3. 제출 데이터 연동 (Workflow): 
+ *    - 사용자는 'submissions' 탭에서 유저들이 올린 기록을 확인하고 '정보 복사(handleCopyInfo)' 버튼을 누를 수 있습니다.
+ *    - 복사한 후 'levels' -> '레벨 추가' 모달을 열면, '복사한 제출 정보 붙여넣기' 버튼이 활성화되어 
+ *      이름, 배포자, 맵 ID를 일일이 타이핑하지 않고 한 번에 채울 수 있습니다.
+ * 4. 이미지 프로세싱: 이미지를 업로드할 때 클라이언트 사이드에서 리사이징(HTML5 Canvas)한 뒤 
+ *    Base64 형식으로 서버 API에 전송하여 ImgBB에 저장합니다.
+ */
 export default function AdminDashboard() {
     const [levels, setLevels] = useState<Level[]>([]);
     const [loading, setLoading] = useState(true);

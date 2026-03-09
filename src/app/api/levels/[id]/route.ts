@@ -63,32 +63,34 @@ export async function PUT(
                     data: { rank: -999 },
                 });
 
+                // [AI ANALYSIS NOTE - CRITICAL ARCHITECTURE]
+                // 특정 레벨의 순위를 변경할 때 나머지 레벨들의 순위를 연쇄적으로 당기거나 미는 로직입니다.
+                // POST의 중간 삽입과 마찬가지로 PostgreSQL의 Unique 제약 조건을 피하기 위해 TEMP_OFFSET을 통한 
+                // Two-Phase Shift 방식을 사용해야만 Transaction Error(P2028 및 P2002)를 방지할 수 있습니다.
+                const TEMP_OFFSET = 10000;
+
                 if (newRank < oldRank) {
-                    // [순위 상승] 목표 맵이 위로 감 -> 중간 맵들은 한 칸씩 아래로 밀려남
-                    const affectedLevels = await tx.level.findMany({
-                        where: { rank: { gte: newRank, lt: oldRank } },
-                        orderBy: { rank: "desc" },
-                    });
-
-                    for (const level of affectedLevels) {
-                        await tx.level.update({
-                            where: { id: level.id },
-                            data: { rank: level.rank + 1 },
-                        });
-                    }
+                    // [순위 상승] 목표 맵이 위로 감 -> 기존에 위에 있던 맵들은 아래로 한 칸씩 밀려남 (+1)
+                    // Two-Phase Shift: 임시로 10000을 더해 대피시킨 후, 본래 위치에서 +1로 복귀 처리
+                    await tx.$executeRawUnsafe(
+                        `UPDATE "Level" SET rank = rank + $1 WHERE rank >= $2 AND rank < $3`,
+                        TEMP_OFFSET, newRank, oldRank
+                    );
+                    await tx.$executeRawUnsafe(
+                        `UPDATE "Level" SET rank = rank - $1 + 1 WHERE rank >= $2 AND rank < $3`,
+                        TEMP_OFFSET, TEMP_OFFSET + newRank, TEMP_OFFSET + oldRank
+                    );
                 } else if (newRank > oldRank) {
-                    // [순위 하락] 목표 맵이 아래로 감 -> 중간 맵들은 한 칸씩 위로 당겨짐
-                    const affectedLevels = await tx.level.findMany({
-                        where: { rank: { gt: oldRank, lte: newRank } },
-                        orderBy: { rank: "asc" },
-                    });
-
-                    for (const level of affectedLevels) {
-                        await tx.level.update({
-                            where: { id: level.id },
-                            data: { rank: level.rank - 1 },
-                        });
-                    }
+                    // [순위 하락] 목표 맵이 아래로 감 -> 기존에 아래에 있던 맵들은 위로 한 칸씩 당겨짐 (-1)
+                    // Two-Phase Shift: 임시로 10000을 더해 대피시킨 후, 본래 위치에서 -1로 복귀 처리
+                    await tx.$executeRawUnsafe(
+                        `UPDATE "Level" SET rank = rank + $1 WHERE rank > $2 AND rank <= $3`,
+                        TEMP_OFFSET, oldRank, newRank
+                    );
+                    await tx.$executeRawUnsafe(
+                        `UPDATE "Level" SET rank = rank - $1 - 1 WHERE rank > $2 AND rank <= $3`,
+                        TEMP_OFFSET, TEMP_OFFSET + oldRank, TEMP_OFFSET + newRank
+                    );
                 }
 
                 const updated = await tx.level.update({
