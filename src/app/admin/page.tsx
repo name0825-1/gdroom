@@ -125,14 +125,15 @@ export default function AdminDashboard() {
     };
 
     // Images Handlers
-    const uploadImageToImgbb = async (file: File): Promise<string | null> => {
+    const uploadImageToImgbb = async (file: File, levelId: number): Promise<string | null> => {
         try {
             const formData = new FormData();
-            formData.append("image", file);
+            formData.append("file", file);
+            formData.append("levelId", levelId.toString());
             const res = await fetch("/api/upload", { method: "POST", body: formData });
             if (!res.ok) throw new Error("Upload failed");
             const data = await res.json();
-            return data.url;
+            return data.imageUrl;
         } catch (e) {
             alert("이미지 업로드에 실패했습니다.");
             return null;
@@ -315,7 +316,7 @@ export default function AdminDashboard() {
                     onDelete={() => deleteConfirm === editingLevel.id ? handleDeleteLevel(editingLevel) : setDeleteConfirm(editingLevel.id)}
                     onUpdateField={(field, value) => setEditingLevel({ ...editingLevel, [field]: value })}
                     onImageUpload={async (file) => {
-                        const url = await uploadImageToImgbb(file);
+                        const url = await uploadImageToImgbb(file, editingLevel.id);
                         if (url) setEditingLevel({ ...editingLevel, imageUrl: url });
                     }}
                 />
@@ -342,8 +343,12 @@ export default function AdminDashboard() {
                     onImageChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        const url = await uploadImageToImgbb(file);
-                        if (url) setNewLevelData({ ...newLevelData, imageUrl: url });
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            const dataUrl = reader.result as string;
+                            setNewLevelData({ ...newLevelData, imageUrl: dataUrl });
+                        };
+                        reader.readAsDataURL(file);
                     }}
                 />
             )}
