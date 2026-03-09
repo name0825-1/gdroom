@@ -156,18 +156,20 @@ export async function DELETE(
             // 1. 삭제
             await tx.level.delete({ where: { id: levelId } });
 
-            // 2. 당기기
-            const affectedLevels = await tx.level.findMany({
-                where: { rank: { gt: deletedRank } },
-                orderBy: { rank: "asc" },
-            });
+            // 2. 당기기 (Two-Phase Raw SQL Shift)
+            // 삭제된 순위 아래의 레벨들을 위로 한 칸씩 당깁니다 (-1).
+            // Unique 제약 조건을 피하기 위해 +10000 대피 방식을 사용합니다.
+            const TEMP_OFFSET = 10000;
 
-            for (const level of affectedLevels) {
-                await tx.level.update({
-                    where: { id: level.id },
-                    data: { rank: level.rank - 1 },
-                });
-            }
+            await tx.$executeRawUnsafe(
+                `UPDATE "Level" SET rank = rank + $1 WHERE rank > $2 AND rank <= 200`,
+                TEMP_OFFSET, deletedRank
+            );
+
+            await tx.$executeRawUnsafe(
+                `UPDATE "Level" SET rank = rank - $1 - 1 WHERE rank > $2 AND rank <= $3`,
+                TEMP_OFFSET, TEMP_OFFSET + deletedRank, TEMP_OFFSET + 200
+            );
 
             // 3. 200위 채우기
             await tx.level.create({

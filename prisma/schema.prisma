@@ -29,3 +29,13 @@ model Submission {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+model RateLimit {
+  id          Int      @id @default(autoincrement())
+  ip          String   @unique
+  attempts    Int      @default(1)
+  lockedUntil DateTime?
+  lastReset   DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

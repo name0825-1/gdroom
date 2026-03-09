@@ -10,41 +10,48 @@ export const dynamic = "force-dynamic";
 const LEVEL_ID_REGEX = /^\d{8,}$/;
 const VIDEO_URL_REGEX = /^https?:\/\/(www\.)?(youtube\.com|youtu\.be|drive\.google\.com)\//;
 
-// IP 기반 레이트 리미트 상태 저장 (서버 로컬 메모리)
-const ipRegistry = new Map<string, { lastSubmit: number; dailyCount: number; lastReset: number }>();
 const COOLDOWN_MS = 5 * 60 * 1000; // 5분
 const DAILY_LIMIT = 10;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000; // 1일
 
-function checkRateLimit(ip: string): { allowed: boolean; error?: string; status?: number } {
-    const now = Date.now();
-    const record = ipRegistry.get(ip);
+async function checkRateLimit(ip: string): Promise<{ allowed: boolean; error?: string; status?: number }> {
+    const now = new Date();
+    const ipKey = `submit:${ip}`;
+
+    let record = await prisma.rateLimit.findUnique({ where: { ip: ipKey } });
 
     if (!record) {
-        ipRegistry.set(ip, { lastSubmit: now, dailyCount: 1, lastReset: now });
+        await prisma.rateLimit.create({
+            data: { ip: ipKey, attempts: 1, lastReset: now, updatedAt: now }
+        });
         return { allowed: true };
     }
 
     // 일일 카운트 리셋 (24시간 경과 시)
-    if (now - record.lastReset > ONE_DAY_MS) {
-        record.dailyCount = 0;
-        record.lastReset = now;
+    if (now.getTime() - record.lastReset.getTime() > ONE_DAY_MS) {
+        record = await prisma.rateLimit.update({
+            where: { ip: ipKey },
+            data: { attempts: 0, lastReset: now }
+        });
     }
 
-    // 1. 일일 10회 제한 (유저에게 구체적인 메시지를 숨기기 위해 일반 에러처럼 처리)
-    if (record.dailyCount >= DAILY_LIMIT) {
+    // 1. 일일 10회 제한
+    if (record.attempts >= DAILY_LIMIT) {
         return { allowed: false, error: "제출 처리 중 오류가 발생했습니다.", status: 403 };
     }
 
-    // 2. 5분 쿨다운 제한
-    if (now - record.lastSubmit < COOLDOWN_MS) {
-        const remainingMinutes = Math.ceil((COOLDOWN_MS - (now - record.lastSubmit)) / 60000);
+    // 2. 5분 쿨다운 제한 (마지막 수정 시간으로 계산)
+    if (now.getTime() - record.updatedAt.getTime() < COOLDOWN_MS) {
+        const remainingMinutes = Math.ceil((COOLDOWN_MS - (now.getTime() - record.updatedAt.getTime())) / 60000);
         return { allowed: false, error: `너무 잦은 요청입니다. ${remainingMinutes}분 후에 다시 시도해주세요.`, status: 429 };
     }
 
     // 통과 시 기록 업데이트
-    record.lastSubmit = now;
-    record.dailyCount += 1;
+    await prisma.rateLimit.update({
+        where: { ip: ipKey },
+        data: { attempts: record.attempts + 1, updatedAt: now }
+    });
+
     return { allowed: true };
 }
 
@@ -82,7 +89,7 @@ export async function POST(request: Request) {
         const ip = forwardedFor ? forwardedFor.split(',')[0] : (realIp || "unknown_ip");
 
         // 레이트 리밋 확인
-        const limitCheck = checkRateLimit(ip);
+        const limitCheck = await checkRateLimit(ip);
         if (!limitCheck.allowed) {
             return NextResponse.json(
                 { error: limitCheck.error },
