@@ -11,6 +11,7 @@ export default function Error({
     reset: () => void;
 }) {
     useEffect(() => {
+        // 에러 로깅 (가급적 서버로 전송하는 로직을 추가하는 것이 좋음)
         console.error("Runtime Error:", error);
     }, [error]);
 
@@ -23,13 +24,15 @@ export default function Error({
                 Something went wrong!
             </h2>
             <p className="mb-8 max-w-md text-sm text-zinc-500">
-                데이터베이스 연결이나 일시적인 서버 오류로 인해 페이지를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.
+                데이터베이스 연결이나 일시적인 서버 오류로 인해 페이지를 불러올 수 없습니다.
+                잠시 후 다시 시도해 주세요.
             </p>
             <button
                 onClick={() => reset()}
                 className="flex items-center gap-2 rounded-xl bg-zinc-800 px-6 py-3 text-sm font-bold text-white transition-all hover:bg-zinc-700 active:scale-95"
             >
-                <RefreshCcw className="h-4 w-4" /> 다시 시도하기
+                <RefreshCcw className="h-4 w-4" />
+                다시 시도하기
             </button>
         </div>
     );

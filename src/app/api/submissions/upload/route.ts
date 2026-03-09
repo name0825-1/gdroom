@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { uploadToImgBB } from "@/lib/imgbb";
 
 // 유저 썸네일 업로드 API (관리자 권한 불필요)
 export async function POST(req: Request) {
@@ -21,13 +22,15 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "JPG, PNG, WebP만 업로드 가능합니다." }, { status: 400 });
         }
 
-        // Vercel(서버리스) 환경을 위해 이미지를 Base64로 즉시 변환하여 저장
+        // ImgBB API를 통해 외부 서버에 업로드
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
         const base64Data = buffer.toString("base64");
 
-        // Base64 Data URL 생성
-        const imageUrl = `data:${file.type};base64,${base64Data}`;
+        const imageUrl = await uploadToImgBB(base64Data);
+        if (!imageUrl) {
+            return NextResponse.json({ error: "이미지 서버 업로드에 실패했습니다." }, { status: 500 });
+        }
 
         return NextResponse.json({ imageUrl });
     } catch (error) {

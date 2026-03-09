@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, Search, User, X, Trophy, LayoutList, History, Send } from "lucide-react";
+import { Menu, Search, User, X, Trophy, Send } from "lucide-react";
 import { SearchModal } from "./SearchModal";
 
 export function Header() {

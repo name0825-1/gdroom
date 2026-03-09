@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { uploadToImgBB } from "@/lib/imgbb";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,16 @@ export async function PUT(
             const targetLevel = await tx.level.findUnique({ where: { id: levelId } });
             if (!targetLevel) {
                 throw new Error("Target level not found");
+            }
+
+            let finalImageUrl = imageUrl;
+            // Base64 데이터면 ImgBB에 업로드
+            if (imageUrl && imageUrl.startsWith("data:image/")) {
+                const uploadedUrl = await uploadToImgBB(imageUrl);
+                if (!uploadedUrl) {
+                    throw new Error("이미지 서버 업로드에 실패했습니다.");
+                }
+                finalImageUrl = uploadedUrl;
             }
 
             // 0. 정보 비우기(Clear) 액션 처리
@@ -87,7 +98,7 @@ export async function PUT(
                         name: name !== undefined ? name : targetLevel.name,
                         creator: creator !== undefined ? creator : targetLevel.creator,
                         verifier: verifier !== undefined ? verifier : targetLevel.verifier,
-                        imageUrl: imageUrl !== undefined ? imageUrl : targetLevel.imageUrl,
+                        imageUrl: finalImageUrl !== undefined ? finalImageUrl : targetLevel.imageUrl,
                     },
                 });
                 return updated;
@@ -98,7 +109,7 @@ export async function PUT(
             if (name !== undefined) updateData.name = name;
             if (creator !== undefined) updateData.creator = creator;
             if (verifier !== undefined) updateData.verifier = verifier;
-            if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+            if (finalImageUrl !== undefined) updateData.imageUrl = finalImageUrl;
 
             const updated = await tx.level.update({
                 where: { id: levelId },

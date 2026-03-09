@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
 
 // PATCH: 제출 기록 읽음 처리
 export async function PATCH(
@@ -7,6 +8,12 @@ export async function PATCH(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // 관리자 권한 검증 (Admin authentication check)
+        const session = await getSession();
+        if (!session.isAdmin) {
+            return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
+        }
+
         const { id: idStr } = await params;
         const id = parseInt(idStr);
         if (isNaN(id)) {
@@ -35,6 +42,12 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // 관리자 권한 검증 (Admin authentication check)
+        const session = await getSession();
+        if (!session.isAdmin) {
+            return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
+        }
+
         const { id: idStr } = await params;
         const id = parseInt(idStr);
         if (isNaN(id)) {

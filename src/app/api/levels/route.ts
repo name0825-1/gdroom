@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { uploadToImgBB } from "@/lib/imgbb";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,20 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "유효하지 않은 순위입니다. (1~200)" }, { status: 400 });
         }
 
+        let finalImageUrl = imageUrl || null;
+
+        // Base64 데이터면 ImgBB에 업로드
+        if (imageUrl && imageUrl.startsWith("data:image/")) {
+            const uploadedUrl = await uploadToImgBB(imageUrl);
+            if (!uploadedUrl) {
+                return NextResponse.json(
+                    { error: "이미지 서버 업로드에 실패했습니다." },
+                    { status: 500 }
+                );
+            }
+            finalImageUrl = uploadedUrl;
+        }
+
         // 트랜잭션 처리 (Transaction: Ensure atomic rank shifting and insertion)
         return await prisma.$transaction(async (tx: any) => {
             // STEP 1. 200위 레벨을 삭제하여 공간 확보 (최대 200개 유지 / Maintain max 200 cap limits)
@@ -64,7 +79,7 @@ export async function POST(req: Request) {
                     name: name || "--",
                     creator: creator || "--",
                     verifier: verifier || "--",
-                    imageUrl: imageUrl || null,
+                    imageUrl: finalImageUrl,
                 },
             });
 

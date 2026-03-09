@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { uploadToImgBB } from "@/lib/imgbb";
 
 // Next.js 캐싱 비활성화 (삭제 후 목록 즉시 갱신을 위해)
 export const dynamic = "force-dynamic";
@@ -125,13 +126,27 @@ export async function POST(request: Request) {
             );
         }
 
+        let finalImageUrl = imageUrl || null;
+
+        // Base64 데이터면 ImgBB에 업로드
+        if (imageUrl && imageUrl.startsWith("data:image/")) {
+            const uploadedUrl = await uploadToImgBB(imageUrl);
+            if (!uploadedUrl) {
+                return NextResponse.json(
+                    { error: "이미지 서버 업로드에 실패했습니다." },
+                    { status: 500 }
+                );
+            }
+            finalImageUrl = uploadedUrl;
+        }
+
         const submission = await prisma.submission.create({
             data: {
                 levelName: levelName.trim(),
                 publisher: publisher.trim(),
                 levelId: levelId.trim(),
                 videoUrl: videoUrl.trim(),
-                imageUrl: imageUrl || null,
+                imageUrl: finalImageUrl,
             },
         });
 
