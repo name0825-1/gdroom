@@ -82,8 +82,8 @@ export default function AdminDashboard() {
                 subRes.json()
             ]);
 
-            setLevels(levelsData.levels || []);
-            setSubmissions(subData.submissions || []);
+            setLevels(Array.isArray(levelsData) ? levelsData : []);
+            setSubmissions(Array.isArray(subData) ? subData : []);
         } catch (err) {
             setError("데이터를 불러오는데 실패했습니다.");
         } finally {
