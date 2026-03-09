@@ -141,6 +141,7 @@ export default function AdminDashboard() {
 
     // Levels Handlers
     const handleSaveList = async (level: Level) => {
+        if (saving !== null) return;
         setSaving(level.id);
         try {
             const res = await fetch(`/api/levels/${level.id}`, {
@@ -165,6 +166,7 @@ export default function AdminDashboard() {
     };
 
     const handleDeleteLevel = async (level: Level) => {
+        if (saving !== null) return;
         setSaving(level.id);
         try {
             const res = await fetch(`/api/levels/${level.id}`, { method: "DELETE" });
@@ -177,11 +179,13 @@ export default function AdminDashboard() {
     };
 
     const handleClearLevel = async (level: Level) => {
+        if (saving !== null) return;
         const clearedLevel = { ...level, name: "--", creator: "--", verifier: "--", imageUrl: null };
         handleSaveList(clearedLevel);
     };
 
     const handleInsertLevel = async () => {
+        if (saving !== null) return;
         setSaving(-1); // Insert indicator
         try {
             const res = await fetch("/api/levels", {
