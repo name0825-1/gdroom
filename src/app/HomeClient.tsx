@@ -30,10 +30,10 @@ function SectionDivider({ title, id }: { title: string; id: string }) {
 
 function LevelCard({
     level,
-    isMainList = false,
+    showImage = false,
 }: {
     level: Level;
-    isMainList?: boolean;
+    showImage?: boolean;
 }) {
     const [copied, setCopied] = useState(false);
 
@@ -60,8 +60,8 @@ function LevelCard({
             id={`level-${level.id}`}
             className={`level-card group relative flex flex-col sm:flex-row items-start sm:items-center overflow-hidden rounded-lg p-4 sm:p-5 gap-5 sm:gap-6 cursor-default scroll-mt-24 ${rankStyle} ${borderClass}`}
         >
-            {/* 썸네일 (메인 리스트 전용) */}
-            {isMainList && (
+            {/* 썸네일 (이미지 표시 옵션) */}
+            {showImage && (
                 <div className="shrink-0 flex items-center justify-center bg-zinc-900 border border-zinc-800/80 rounded-md overflow-hidden aspect-video w-full sm:w-48 md:w-56 relative shadow-md group-hover:border-cyan-500/30 transition-colors">
                     {level.imageUrl ? (
                         <img
@@ -143,15 +143,15 @@ export default function HomeClient({ levels }: { levels: Level[] }) {
                     <SectionDivider title="Main List" id="main" />
                     <div className="flex flex-col gap-3">
                         {mainLevels.map((level) => (
-                            <LevelCard key={level.id} level={level} isMainList={true} />
+                            <LevelCard key={level.id} level={level} showImage={true} />
                         ))}
                     </div>
 
                     {/* Extended List */}
                     <SectionDivider title="Extended List" id="extended" />
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-3">
                         {extendedLevels.map((level) => (
-                            <LevelCard key={level.id} level={level} isMainList={false} />
+                            <LevelCard key={level.id} level={level} showImage={true} />
                         ))}
                     </div>
 
@@ -159,7 +159,7 @@ export default function HomeClient({ levels }: { levels: Level[] }) {
                     <SectionDivider title="Legacy List" id="legacy" />
                     <div className="flex flex-col gap-2">
                         {legacyLevels.map((level) => (
-                            <LevelCard key={level.id} level={level} isMainList={false} />
+                            <LevelCard key={level.id} level={level} showImage={false} />
                         ))}
                     </div>
                 </section>
