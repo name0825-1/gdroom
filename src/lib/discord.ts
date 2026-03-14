@@ -41,13 +41,14 @@ export async function sendDiscordWebhook(
         });
 
         if (!response.ok) {
-            console.error(`[Discord Webhook] Failed to send message: ${response.status} ${response.statusText}`);
-            return false;
+            const errorText = await response.text();
+            console.error(`[Discord Webhook] Failed to send message: ${response.status} ${response.statusText}`, errorText);
+            throw new Error(`Discord API Error: ${response.status} - ${errorText}`);
         }
 
         return true;
     } catch (error) {
         console.error("[Discord Webhook] Error sending message:", error);
-        return false;
+        throw error;
     }
 }

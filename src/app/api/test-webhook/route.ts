@@ -14,7 +14,7 @@ export async function GET() {
             }, { status: 500 });
         }
 
-        const success = await sendDiscordWebhook({
+        await sendDiscordWebhook({
             embeds: [{
                 title: "🧪 Test Notification from Vercel Server",
                 description: "This is a direct test from the Vercel API Route.",
@@ -23,12 +23,8 @@ export async function GET() {
             }]
         });
 
-        if (success) {
-            return NextResponse.json({ success: true, message: "Webhook sent successfully." });
-        } else {
-            return NextResponse.json({ success: false, error: "Failed to send webhook. Check Vercel logs." }, { status: 500 });
-        }
+        return NextResponse.json({ success: true, message: "Webhook sent successfully." });
     } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: e.message || "Failed to send webhook." }, { status: 500 });
     }
 }
