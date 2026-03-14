@@ -8,9 +8,9 @@ interface EditLevelModalProps {
     deleteConfirm: number | null;
     clearConfirm: number | null;
     onClose: () => void;
-    onSave: (level: Level) => void;
+    onSave: (level: Level, sendNotification: boolean) => void;
     onClear: (level: Level) => void;
-    onDelete: (level: Level) => void;
+    onDelete: (level: Level, sendNotification: boolean) => void;
     onUpdateField: (field: keyof Level, value: string | number) => void;
     onImageUpload: (file: File) => void;
 }
@@ -28,6 +28,7 @@ export function EditLevelModal({
     onImageUpload
 }: EditLevelModalProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [sendNotification, setSendNotification] = useState(true);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
@@ -112,9 +113,23 @@ export function EditLevelModal({
                 </div>
 
                 <div className="mt-8 space-y-3">
+                    {/* Discord Notification Toggle */}
+                    <div className="flex items-center gap-3 rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-3 mb-2">
+                         <input 
+                             type="checkbox" 
+                             id="discordNotificationEdit" 
+                             className="h-4 w-4 cursor-pointer accent-cyan-500"
+                             checked={sendNotification}
+                             onChange={(e) => setSendNotification(e.target.checked)}
+                         />
+                         <label htmlFor="discordNotificationEdit" className="cursor-pointer text-xs font-bold text-cyan-400">
+                             디스코드 채널에 변동 알림 전송하기 (수정 및 삭제 시)
+                         </label>
+                    </div>
+
                     <button
                         type="button"
-                        onClick={() => onSave(editingLevel)}
+                        onClick={() => onSave(editingLevel, sendNotification)}
                         disabled={saving === editingLevel.id}
                         className="w-full rounded-lg bg-gradient-to-r from-cyan-600 to-cyan-500 py-4 font-black text-white shadow-xl shadow-cyan-900/20 transition-all hover:brightness-110 disabled:opacity-50"
                     >
@@ -139,7 +154,7 @@ export function EditLevelModal({
                             type="button"
                             onClick={(e) => {
                                 e.preventDefault();
-                                onDelete(editingLevel);
+                                onDelete(editingLevel, sendNotification);
                             }}
                             className={`flex items-center justify-center gap-2 rounded-lg border py-3 text-xs font-black transition-all ${deleteConfirm === editingLevel.id
                                 ? "border-red-500 bg-red-600 text-white animate-pulse"

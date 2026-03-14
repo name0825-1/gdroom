@@ -14,6 +14,7 @@ interface NewLevelData {
     verifier: string;
     rank: number;
     imageUrl: string;
+    sendNotification: boolean;
 }
 
 export default function AdminDashboard() {
@@ -29,7 +30,7 @@ export default function AdminDashboard() {
     const [editingLevel, setEditingLevel] = useState<Level | null>(null);
     const [isInsertModalOpen, setIsInsertModalOpen] = useState(false);
     const [newLevelData, setNewLevelData] = useState<NewLevelData>({
-        name: "", creator: "", verifier: "", rank: 1, imageUrl: ""
+        name: "", creator: "", verifier: "", rank: 1, imageUrl: "", sendNotification: true
     });
 
     // Submissions
@@ -141,14 +142,15 @@ export default function AdminDashboard() {
     };
 
     // Levels Handlers
-    const handleSaveList = async (level: Level) => {
+    const handleSaveList = async (level: Level, sendNotification: boolean = true) => {
         if (saving !== null) return;
         setSaving(level.id);
         try {
+            const payload = { ...level, sendNotification };
             const res = await fetch(`/api/levels/${level.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(level),
+                body: JSON.stringify(payload),
             });
             if (res.ok) {
                 setEditingLevel(null);
@@ -166,11 +168,11 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleDeleteLevel = async (level: Level) => {
+    const handleDeleteLevel = async (level: Level, sendNotification: boolean = true) => {
         if (saving !== null) return;
         setSaving(level.id);
         try {
-            const res = await fetch(`/api/levels/${level.id}`, { method: "DELETE" });
+            const res = await fetch(`/api/levels/${level.id}?sendNotification=${sendNotification}`, { method: "DELETE" });
             if (res.ok) {
                 setEditingLevel(null);
                 fetchData();
@@ -196,7 +198,7 @@ export default function AdminDashboard() {
             });
             if (res.ok) {
                 setIsInsertModalOpen(false);
-                setNewLevelData({ name: "", creator: "", verifier: "", rank: 1, imageUrl: "" });
+                setNewLevelData({ name: "", creator: "", verifier: "", rank: 1, imageUrl: "", sendNotification: true });
                 fetchData();
             } else {
                 const data = await res.json();
@@ -311,9 +313,9 @@ export default function AdminDashboard() {
                     deleteConfirm={deleteConfirm}
                     clearConfirm={clearConfirm}
                     onClose={() => { setEditingLevel(null); setDeleteConfirm(null); setClearConfirm(null); }}
-                    onSave={handleSaveList}
+                    onSave={(level, notify) => handleSaveList(level, notify)}
                     onClear={() => clearConfirm === editingLevel.id ? handleClearLevel(editingLevel) : setClearConfirm(editingLevel.id)}
-                    onDelete={() => deleteConfirm === editingLevel.id ? handleDeleteLevel(editingLevel) : setDeleteConfirm(editingLevel.id)}
+                    onDelete={(level, notify) => deleteConfirm === editingLevel.id ? handleDeleteLevel(editingLevel, notify) : setDeleteConfirm(editingLevel.id)}
                     onUpdateField={(field, value) => setEditingLevel({ ...editingLevel, [field]: value })}
                     onImageUpload={async (file) => {
                         const url = await uploadImageToImgbb(file, editingLevel.id);
@@ -329,7 +331,7 @@ export default function AdminDashboard() {
                     copiedSubmissionData={copiedSubmissionData}
                     onClose={() => setIsInsertModalOpen(false)}
                     onInsert={handleInsertLevel}
-                    onUpdateField={(field, value) => setNewLevelData({ ...newLevelData, [field]: value })}
+                    onUpdateField={(field, value) => setNewLevelData({ ...newLevelData, [field]: value === "true" ? true : value === "false" ? false : value })}
                     onPasteSubmission={() => {
                         if (copiedSubmissionData) {
                             setNewLevelData({

@@ -6,6 +6,7 @@ interface NewLevelData {
     verifier: string;
     rank: number;
     imageUrl: string;
+    sendNotification: boolean;
 }
 
 interface InsertLevelModalProps {
@@ -107,6 +108,19 @@ export function InsertLevelModal({
                                 placeholder="ex: 12345678"
                             />
                         </div>
+                    </div>
+                    {/* Discord Notification Toggle */}
+                    <div className="flex items-center gap-3 rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-3">
+                         <input 
+                             type="checkbox" 
+                             id="discordNotificationInsert" 
+                             className="h-4 w-4 cursor-pointer accent-cyan-500"
+                             checked={newLevelData.sendNotification}
+                             onChange={(e) => onUpdateField("sendNotification", e.target.checked ? "true" : "false")}
+                         />
+                         <label htmlFor="discordNotificationInsert" className="cursor-pointer text-xs font-bold text-cyan-400">
+                             디스코드 채널에 등재 알림 전송하기
+                         </label>
                     </div>
                     <button
                         type="button"

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { uploadToImgBB } from "@/lib/imgbb";
+import { sendDiscordWebhook } from "@/lib/discord";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export async function PUT(
         const { id } = await params;
         const levelId = parseInt(id);
         const body = await req.json();
-        const { name, creator, verifier, rank, imageUrl } = body;
+        const { name, creator, verifier, rank, imageUrl, sendNotification } = body;
 
         const result = await prisma.$transaction(async (tx: any) => {
             const targetLevel = await tx.level.findUnique({ where: { id: levelId } });
@@ -103,6 +104,34 @@ export async function PUT(
                         imageUrl: finalImageUrl !== undefined ? finalImageUrl : targetLevel.imageUrl,
                     },
                 });
+
+                // 디스코드 알림 전송 (옵션 체크 시 & 의미 있는 정보/순위 변경 시에만)
+                if (sendNotification) {
+                    try {
+                        const descriptionLines = [
+                            `**${updated.name}** 레벨 정보가 업데이트 되었습니다.`,
+                            `순위 변동: **#${oldRank}** ➔ **#${newRank}**`
+                        ];
+
+                        sendDiscordWebhook({
+                            embeds: [{
+                                title: `🔄 레벨 정보 업데이트`,
+                                description: descriptionLines.join("\n"),
+                                color: 0xf59e0b, // Amber-500
+                                fields: [
+                                    { name: "Level ID", value: String(updated.verifier), inline: true },
+                                    { name: "Publisher", value: String(updated.creator), inline: true }
+                                ],
+                                thumbnail: updated.imageUrl ? { url: updated.imageUrl } : undefined,
+                                footer: { text: "GDRMCL 변동 알림" },
+                                timestamp: new Date().toISOString()
+                            }]
+                        }).catch(console.error);
+                    } catch (e) {
+                        console.error("Discord notification error:", e);
+                    }
+                }
+
                 return updated;
             }
 
@@ -117,6 +146,29 @@ export async function PUT(
                 where: { id: levelId },
                 data: updateData,
             });
+
+            // 순위 변경이 없는 기본 정보 수정에 대한 알림
+            if (sendNotification && Object.keys(updateData).length > 0) {
+                 try {
+                     sendDiscordWebhook({
+                         embeds: [{
+                             title: `🔄 레벨 정보 업데이트`,
+                             description: `**${updated.name}** (#${updated.rank}) 레벨의 세부 정보가 수정되었습니다.`,
+                             color: 0xf59e0b, // Amber-500
+                             fields: [
+                                 { name: "Level ID", value: String(updated.verifier), inline: true },
+                                 { name: "Publisher", value: String(updated.creator), inline: true }
+                             ],
+                             thumbnail: updated.imageUrl ? { url: updated.imageUrl } : undefined,
+                             footer: { text: "GDRMCL 변동 알림" },
+                             timestamp: new Date().toISOString()
+                         }]
+                     }).catch(console.error);
+                 } catch (e) {
+                     console.error("Discord notification error:", e);
+                 }
+            }
+
             return updated;
         });
 
@@ -133,7 +185,7 @@ export async function PUT(
 
 // DELETE: 레벨 영구 삭제 후 하위 순위 연쇄적으로 당겨오기
 export async function DELETE(
-    _req: Request,
+    req: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
@@ -144,6 +196,8 @@ export async function DELETE(
 
         const { id } = await params;
         const levelId = parseInt(id);
+        const url = new URL(req.url);
+        const sendNotification = url.searchParams.get("sendNotification") === "true";
 
         await prisma.$transaction(async (tx: any) => {
             const targetLevel = await tx.level.findUnique({ where: { id: levelId } });
@@ -181,6 +235,28 @@ export async function DELETE(
                     imageUrl: null,
                 },
             });
+
+            // 디스코드 알림 전송 (옵션 체크 시에만)
+            if (sendNotification) {
+                try {
+                    sendDiscordWebhook({
+                        embeds: [{
+                            title: `🗑️ 레벨 삭제됨`,
+                            description: `**${targetLevel.name}** 레벨이 **#${deletedRank}** 순위에서 삭제되었습니다.`,
+                            color: 0xef4444, // Red-500
+                            fields: [
+                                { name: "Level ID", value: String(targetLevel.verifier), inline: true },
+                                { name: "Publisher", value: String(targetLevel.creator), inline: true }
+                            ],
+                            thumbnail: targetLevel.imageUrl ? { url: targetLevel.imageUrl } : undefined,
+                            footer: { text: "GDRMCL 삭제 알림" },
+                            timestamp: new Date().toISOString()
+                        }]
+                    }).catch(console.error);
+                } catch (e) {
+                    console.error("Discord notification error:", e);
+                }
+            }
         });
 
         return NextResponse.json({ success: true });

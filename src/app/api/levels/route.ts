@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { uploadToImgBB } from "@/lib/imgbb";
+import { sendDiscordWebhook } from "@/lib/discord";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { name, creator, verifier, rank, imageUrl } = body;
+        const { name, creator, verifier, rank, imageUrl, sendNotification } = body;
         const targetRank = parseInt(rank);
 
         // 유효성 검사 (Validation: Rank must be 1~200)
@@ -96,6 +97,29 @@ export async function POST(req: Request) {
                     imageUrl: finalImageUrl,
                 },
             });
+
+            // 디스코드 알림 전송 (옵션 체크 시에만)
+            if (sendNotification) {
+                try {
+                    // 비동기로 전송 (응답 지연 방지)
+                    sendDiscordWebhook({
+                        embeds: [{
+                            title: `🎉 새로운 레벨이 등재되었습니다!`,
+                            description: `**${newLevel.name}** 레벨이 **#${newLevel.rank}** 순위에 등록되었습니다.`,
+                            color: 0x06b6d4, // Cyan-500
+                            fields: [
+                                { name: "Level ID", value: String(newLevel.verifier), inline: true },
+                                { name: "Publisher", value: String(newLevel.creator), inline: true }
+                            ],
+                            thumbnail: newLevel.imageUrl ? { url: newLevel.imageUrl } : undefined,
+                            footer: { text: "GDRMCL 등록 알림" },
+                            timestamp: new Date().toISOString()
+                        }]
+                    }).catch(console.error); // 내부 에러 발생 시 로그만 남김 (클라이언트 응답에는 영향 없음)
+                } catch (e) {
+                    console.error("Discord notification error:", e);
+                }
+            }
 
             return NextResponse.json(newLevel, { status: 201 });
         });
