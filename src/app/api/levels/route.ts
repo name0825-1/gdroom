@@ -101,8 +101,8 @@ export async function POST(req: Request) {
             // 디스코드 알림 전송 (옵션 체크 시에만)
             if (sendNotification) {
                 try {
-                    // 비동기로 전송 (응답 지연 방지)
-                    sendDiscordWebhook({
+                    // 서버리스 환경에서는 응답이 반환되면 프로세스가 종료되므로 명시적으로 await 해야 함
+                    await sendDiscordWebhook({
                         embeds: [{
                             title: `🎉 새로운 레벨이 등재되었습니다!`,
                             description: `**${newLevel.name}** 레벨이 **#${newLevel.rank}** 순위에 등록되었습니다.`,
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
                             footer: { text: "GDRMCL 등록 알림" },
                             timestamp: new Date().toISOString()
                         }]
-                    }).catch(console.error); // 내부 에러 발생 시 로그만 남김 (클라이언트 응답에는 영향 없음)
+                    });
                 } catch (e) {
                     console.error("Discord notification error:", e);
                 }

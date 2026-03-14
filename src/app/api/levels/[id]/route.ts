@@ -113,7 +113,7 @@ export async function PUT(
                             `순위 변동: **#${oldRank}** ➔ **#${newRank}**`
                         ];
 
-                        sendDiscordWebhook({
+                        await sendDiscordWebhook({
                             embeds: [{
                                 title: `🔄 레벨 정보 업데이트`,
                                 description: descriptionLines.join("\n"),
@@ -126,7 +126,7 @@ export async function PUT(
                                 footer: { text: "GDRMCL 변동 알림" },
                                 timestamp: new Date().toISOString()
                             }]
-                        }).catch(console.error);
+                        });
                     } catch (e) {
                         console.error("Discord notification error:", e);
                     }
@@ -150,7 +150,7 @@ export async function PUT(
             // 순위 변경이 없는 기본 정보 수정에 대한 알림
             if (sendNotification && Object.keys(updateData).length > 0) {
                  try {
-                     sendDiscordWebhook({
+                     await sendDiscordWebhook({
                          embeds: [{
                              title: `🔄 레벨 정보 업데이트`,
                              description: `**${updated.name}** (#${updated.rank}) 레벨의 세부 정보가 수정되었습니다.`,
@@ -163,7 +163,7 @@ export async function PUT(
                              footer: { text: "GDRMCL 변동 알림" },
                              timestamp: new Date().toISOString()
                          }]
-                     }).catch(console.error);
+                     });
                  } catch (e) {
                      console.error("Discord notification error:", e);
                  }
@@ -239,7 +239,7 @@ export async function DELETE(
             // 디스코드 알림 전송 (옵션 체크 시에만)
             if (sendNotification) {
                 try {
-                    sendDiscordWebhook({
+                    await sendDiscordWebhook({
                         embeds: [{
                             title: `🗑️ 레벨 삭제됨`,
                             description: `**${targetLevel.name}** 레벨이 **#${deletedRank}** 순위에서 삭제되었습니다.`,
@@ -252,7 +252,7 @@ export async function DELETE(
                             footer: { text: "GDRMCL 삭제 알림" },
                             timestamp: new Date().toISOString()
                         }]
-                    }).catch(console.error);
+                    });
                 } catch (e) {
                     console.error("Discord notification error:", e);
                 }
