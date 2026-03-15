@@ -77,8 +77,14 @@ export function SearchModal({
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") onClose();
         };
-        if (isOpen) window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
+
+        if (isOpen) {
+            window.addEventListener("keydown", handleKeyDown);
+        }
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
     }, [isOpen, onClose]);
 
     if (!isOpen) return null;
@@ -100,7 +106,7 @@ export function SearchModal({
                     <input
                         ref={inputRef}
                         type="text"
-                        placeholder="레벨 이름을 검색하세요..."
+                        placeholder="레벨 이름 검색..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="flex-grow bg-transparent text-xl font-medium text-white placeholder-zinc-500 outline-none"
@@ -123,7 +129,6 @@ export function SearchModal({
                     ) : searchQuery.length > 0 && filteredLevels.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 text-zinc-500">
                             <p className="text-lg">결과가 없습니다.</p>
-                            <p className="text-sm">다른 키워드로 검색해보세요.</p>
                         </div>
                     ) : (
                         <div className="flex flex-col p-2 space-y-1">
@@ -154,7 +159,7 @@ export function SearchModal({
                                 ))
                             ) : (
                                 <div className="py-8 px-4 text-center">
-                                    <p className="text-sm text-zinc-600 font-medium">검색어를 입력해 레벨을 찾아보세요.</p>
+                                    <p className="text-sm text-zinc-600 font-medium">검색어 입력</p>
                                 </div>
                             )}
                         </div>
@@ -162,7 +167,7 @@ export function SearchModal({
                 </div>
 
                 {/* 하단 단축키 가이드 */}
-                <div className="px-5 py-3 border-t border-zinc-800 bg-zinc-950 text-xs text-zinc-500 flex justify-end items-center">
+                <div className="px-5 py-3 border-t border-zinc-800 bg-zinc-950 text-xs text-zinc-500 flex justify-start items-center">
                     <span className="flex items-center gap-1">
                         <kbd className="px-1.5 py-0.5 rounded-sm bg-zinc-800 border border-zinc-700 font-mono text-[10px]">ESC</kbd> 닫기
                     </span>
