@@ -71,76 +71,85 @@ export function Header() {
           </div>
         </div>
 
-        {/* 모바일 메뉴 오버레이 */}
+        {/* 모바일 메뉴 오버레이 (모달 방식) */}
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-[100] flex flex-col bg-zinc-950/95 backdrop-blur-xl md:hidden animate-in fade-in slide-in-from-top-4 duration-200">
-            <div className="flex shrink-0 h-14 items-center justify-between px-4 sm:px-8 border-b border-zinc-800/80 bg-zinc-950">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-cyan-500 to-purple-600 text-sm font-bold text-white">
-                  G
+          <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] px-4 backdrop-blur-md bg-black/50 md:hidden animate-in fade-in slide-in-from-top-4 duration-200">
+            {/* 오버레이 클릭 시 닫기 */}
+            <div
+              className="absolute inset-0"
+              onClick={() => setIsMobileMenuOpen(false)}
+            ></div>
+
+            {/* 모달 팝업 컨테이너 */}
+            <div className="relative w-full max-w-sm bg-zinc-950/90 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+              <div className="flex shrink-0 h-14 items-center justify-between px-5 border-b border-zinc-800/80 bg-zinc-950">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-cyan-500 to-purple-600 text-sm font-bold text-white">
+                    G
+                  </div>
+                  <span className="text-lg font-extrabold tracking-tight text-white">
+                    GDRMCL
+                  </span>
                 </div>
-                <span className="text-lg font-extrabold tracking-tight text-white">
-                  GDRMCL
-                </span>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors -mr-1.5"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 text-zinc-400 hover:text-white"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-6">
-              <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 px-2">Navigation</h3>
-              <nav className="flex flex-col gap-3">
-                <a
-                  href="/#main"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-4 rounded-xl p-4 text-zinc-300 hover:text-white transition-all border border-zinc-800/50 bg-zinc-900/40 hover:bg-zinc-800/80 hover:border-zinc-700/50"
-                >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-zinc-950 border border-zinc-800/80 shadow-sm">
-                    <Trophy className="h-6 w-6 text-yellow-500" />
-                  </div>
-                  <span className="text-xl font-bold tracking-tight">Main List</span>
-                </a>
+              <div className="flex-1 overflow-y-auto px-5 py-6 max-h-[70vh]">
+                <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 px-1">Navigation</h3>
+                <nav className="flex flex-col gap-3">
+                  <a
+                    href="/#main"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-4 rounded-xl p-3.5 text-zinc-300 hover:text-white transition-all border border-zinc-800/50 bg-zinc-900/40 hover:bg-zinc-800/80 hover:border-zinc-700/50"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-950 border border-zinc-800/80 shadow-sm">
+                      <Trophy className="h-5 w-5 text-yellow-500" />
+                    </div>
+                    <span className="text-lg font-bold tracking-tight">Main List</span>
+                  </a>
 
-                <a
-                  href="/#extended"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-4 rounded-xl p-4 text-zinc-300 hover:text-white transition-all border border-zinc-800/50 bg-zinc-900/40 hover:bg-zinc-800/80 hover:border-zinc-700/50"
-                >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-zinc-950 border border-zinc-800/80 shadow-sm">
-                    <Trophy className="h-6 w-6 text-zinc-300" />
-                  </div>
-                  <span className="text-xl font-bold tracking-tight">Extended List</span>
-                </a>
+                  <a
+                    href="/#extended"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-4 rounded-xl p-3.5 text-zinc-300 hover:text-white transition-all border border-zinc-800/50 bg-zinc-900/40 hover:bg-zinc-800/80 hover:border-zinc-700/50"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-950 border border-zinc-800/80 shadow-sm">
+                      <Trophy className="h-5 w-5 text-zinc-300" />
+                    </div>
+                    <span className="text-lg font-bold tracking-tight">Extended List</span>
+                  </a>
 
-                <a
-                  href="/#legacy"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-4 rounded-xl p-4 text-zinc-300 hover:text-white transition-all border border-zinc-800/50 bg-zinc-900/40 hover:bg-zinc-800/80 hover:border-zinc-700/50"
-                >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-zinc-950 border border-zinc-800/80 shadow-sm">
-                    <Trophy className="h-6 w-6 text-amber-600" />
-                  </div>
-                  <span className="text-xl font-bold tracking-tight">Legacy List</span>
-                </a>
+                  <a
+                    href="/#legacy"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-4 rounded-xl p-3.5 text-zinc-300 hover:text-white transition-all border border-zinc-800/50 bg-zinc-900/40 hover:bg-zinc-800/80 hover:border-zinc-700/50"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-950 border border-zinc-800/80 shadow-sm">
+                      <Trophy className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <span className="text-lg font-bold tracking-tight">Legacy List</span>
+                  </a>
 
-                <a
-                  href="/submit"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-4 rounded-xl p-4 text-zinc-300 hover:text-white transition-all border border-zinc-800/50 bg-zinc-900/40 hover:bg-zinc-800/80 hover:border-zinc-700/50 mt-2"
-                >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-zinc-950 border border-zinc-800/80 shadow-sm">
-                    <Send className="h-6 w-6 text-emerald-500" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xl font-bold tracking-tight">Submit Record</span>
-                    <span className="text-sm text-zinc-500 mt-1">자신의 클리어 기록 제출하기</span>
-                  </div>
-                </a>
-              </nav>
+                  <a
+                    href="/submit"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-4 rounded-xl p-3.5 text-zinc-300 hover:text-white transition-all border border-zinc-800/50 bg-zinc-900/40 hover:bg-zinc-800/80 hover:border-zinc-700/50 mt-2"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-950 border border-zinc-800/80 shadow-sm">
+                      <Send className="h-5 w-5 text-emerald-500" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-lg font-bold tracking-tight">Submit Record</span>
+                      <span className="text-xs text-zinc-500 mt-0.5">자신의 클리어 기록 제출하기</span>
+                    </div>
+                  </a>
+                </nav>
+              </div>
             </div>
           </div>
         )}

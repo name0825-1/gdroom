@@ -96,7 +96,7 @@ function LevelCard({
             {level.verifier && level.verifier !== "--" && (
                 <button
                     onClick={handleCopyId}
-                    className={`absolute top-4 right-4 flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-black transition-all border ${copied
+                    className={`absolute bottom-4 right-4 sm:bottom-5 sm:right-5 flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-black transition-all border ${copied
                         ? "bg-cyan-500/20 border-cyan-500/50 text-cyan-400"
                         : "bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:border-zinc-500 hover:text-zinc-300"
                         }`}
