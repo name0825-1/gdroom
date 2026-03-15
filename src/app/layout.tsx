@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GDRMCL | GDROOM Challenge List",
-  description: "GDROOM 챌린지 리스트 - 가장 어려운 레벨들의 순위를 확인하세요.",
+  title: "GDRMCL | GDRMCL Challenge List",
+  description: "GDRMCL 챌린지 리스트 - 가장 어려운 레벨들의 순위를 확인하세요.",
 };
 
 export default function RootLayout({

@@ -133,7 +133,7 @@ export default function HomeClient({ levels }: { levels: Level[] }) {
                         transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
                         className="max-w-xl text-sm tracking-normal text-zinc-400 sm:text-base uppercase"
                     >
-                        GDROOM Challenge List
+                        GDRMCL Challenge List
                     </motion.p>
                 </section>
 
