@@ -1,3 +1,9 @@
+/**
+ * Footer 컴포넌트
+ * - 페이지 하단 푸터 영역
+ * - 사이트 로고, 네비게이션 링크, 관리자 로그인 링크, 저작권 정보 표시
+ * - 모든 링크는 상대 경로 사용 (도메인 변경에 영향받지 않음)
+ */
 import Link from "next/link";
 
 export function Footer() {
@@ -5,6 +11,7 @@ export function Footer() {
         <footer className="w-full border-t border-zinc-800/80 bg-zinc-950 py-10">
             <div className="container mx-auto px-4 sm:px-8">
                 <div className="grid gap-8 md:grid-cols-4">
+                    {/* 로고 영역 - 클릭 시 메인 페이지로 이동 */}
                     <div className="md:col-span-2">
                         <Link href="/" className="flex items-center gap-2 mb-3">
                             <div className="flex h-5 w-5 items-center justify-center rounded bg-gradient-to-br from-cyan-500 to-purple-600 text-[10px] font-bold text-white">
@@ -14,6 +21,7 @@ export function Footer() {
                         </Link>
                     </div>
 
+                    {/* 탐색 링크 - 메인 페이지 섹션별 앵커 링크 */}
                     <div>
                         <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">탐색</h3>
                         <ul className="space-y-2 text-sm text-zinc-500">
@@ -24,6 +32,7 @@ export function Footer() {
                         </ul>
                     </div>
 
+                    {/* 리소스 링크 - 관리자 로그인 */}
                     <div>
                         <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">리소스</h3>
                         <ul className="space-y-2 text-sm text-zinc-500">
@@ -32,6 +41,7 @@ export function Footer() {
                     </div>
                 </div>
 
+                {/* 하단 저작권 & 크레딧 영역 */}
                 <div className="mt-8 border-t border-zinc-800/60 pt-6 flex flex-col items-center justify-between sm:flex-row">
                     <p className="text-xs text-zinc-600 font-medium">
                         {new Date().getFullYear()} GDRMCL
