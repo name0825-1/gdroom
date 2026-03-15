@@ -50,8 +50,8 @@ export function Header() {
           {/* 로고 - 클릭 시 메인 페이지로 이동 */}
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-[0_0_15px_rgba(14,165,233,0.5)] bg-transparent">
-                <img src="/logo.png" alt="Logo" className="scale-[1.25] h-full w-full object-cover" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-transparent">
+                <img src="/logo.png" alt="Logo" className="h-full w-full object-cover" />
               </div>
               <span className="text-lg font-extrabold tracking-tight text-white">
                 GDRMCL
@@ -126,8 +126,8 @@ export function Header() {
             {/* 모달 헤더 - 로고 + 닫기 버튼 */}
             <div className="flex shrink-0 h-14 items-center justify-between px-5 border-b border-zinc-800/80 bg-zinc-950">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-transparent">
-                  <img src="/logo.png" alt="Logo" className="scale-[1.25] h-full w-full object-cover" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-transparent">
+                  <img src="/logo.png" alt="Logo" className="h-full w-full object-cover" />
                 </div>
                 <span className="text-lg font-extrabold tracking-tight text-white">
                   GDRMCL

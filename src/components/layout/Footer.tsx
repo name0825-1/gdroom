@@ -15,7 +15,7 @@ export function Footer() {
                     <div className="md:col-span-2">
                         <Link href="/" className="flex items-center gap-2 mb-3">
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-transparent">
-                                <img src="/logo.png" alt="Logo" className="scale-[1.25] h-full w-full object-cover" />
+                                <img src="/logo.png" alt="Logo" className="h-full w-full object-cover" />
                             </div>
                             <span className="text-base font-bold text-white">GDRMCL</span>
                         </Link>
