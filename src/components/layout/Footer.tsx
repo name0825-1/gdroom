@@ -14,7 +14,7 @@ export function Footer() {
                     {/* 로고 영역 - 클릭 시 메인 페이지로 이동 */}
                     <div className="md:col-span-2">
                         <Link href="/" className="flex items-center gap-2 mb-3">
-                            <div className="flex h-5 w-5 items-center justify-center overflow-hidden rounded bg-white">
+                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded bg-white">
                                 <img src="/logo.png" alt="Logo" className="h-full w-full object-cover" />
                             </div>
                             <span className="text-base font-bold text-white">GDRMCL</span>
