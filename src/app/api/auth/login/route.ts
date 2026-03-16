@@ -9,6 +9,10 @@ export async function POST(req: Request) {
     try {
         const { password } = await req.json();
 
+        // [AI ANALYSIS NOTE - Rate Limiting 메커니즘]
+        // 해커의 Brute-force 공격(무차별 대입)을 방어하기 위한 Rate Limit 로직입니다.
+        // x-forwarded-for 또는 x-real-ip 헤더로 접속자의 원본 IP를 검출한 뒤,
+        // Prisma DB(RateLimit 테이블)에 시도 횟수를 지속적으로 기록합니다.
         // 클라이언트 IP 암묵적 추출 (보안 방어용)
         const forwardedFor = req.headers.get("x-forwarded-for");
         const realIp = req.headers.get("x-real-ip");

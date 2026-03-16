@@ -4,9 +4,10 @@
  * - 로고, 데스크탑 메뉴, 검색 버튼, 관리자 링크, 모바일 햄버거 메뉴 포함
  * - 모바일 메뉴와 검색 모달의 배경 스크롤 잠금을 통합 관리
  * 
- * [주의] 모바일 메뉴 오버레이는 반드시 <header> 요소 바깥에 렌더링해야 합니다.
- * backdrop-blur가 적용된 <header> 안에 넣으면 CSS stacking context 문제로
- * fixed 포지셔닝이 전체 화면을 덮지 못합니다.
+ * [AI ANALYSIS NOTE - CSS Stacking Context & 모달 성능]
+ * 모바일 메뉴 오버레이는 반드시 <header> 최상단 컨테이너 바깥에 별도의 DOM 노드로 렌더링해야 합니다.
+ * backdrop-blur나 opacity 속성이 적용된 <header> 내부에 모달을 넣게 되면, 자식 요소의 `position: fixed`가
+ * 뷰포트를 기준으로 삼지 못하고 부모 엘리먼트에 묶여 전체 화면을 덮지 못하는 심각한 이슈가 발생합니다.
  */
 "use client";
 
@@ -22,13 +23,16 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   /**
-   * 배경 스크롤 잠금 (Body Scroll Lock)
-   * - 모바일 메뉴 또는 검색 모달이 열려있는 동안 배경 페이지 스크롤 차단
-   * - 두 상태를 함께 감시하여 둘 다 닫혔을 때만 스크롤 복원
-   * 
-   * [주의] 이 로직은 반드시 한 곳에서만 관리해야 합니다.
-   * Header와 SearchModal에서 각각 overflow를 제어하면 레이스 컨디션이 발생하여
-   * 모달을 닫아도 스크롤이 영구적으로 잠기는 버그가 생깁니다.
+   * [AI ANALYSIS NOTE - 배경 스크롤 잠금 (Body Scroll Lock) 통합 관리]
+   * 모바일 메뉴(isMobileMenuOpen) 또는 검색 모달(isSearchOpen)이 열려있을 때 
+   * 배경 페이지 스와이프를 막는 방어 기제입니다.
+   *
+   * [CRITICAL 버그 트래킹 노트]: 이 로직을 Header와 SearchModal 두 군데로 쪼개서
+   * 각자의 useEffect에서 제어하도록 짜면 레이스 컨디션(경쟁 상태)이 유발됩니다. 
+   * SearchModal이 닫히면서 document.body.style.overflow = ""로 복원할 때, 
+   * 아직 열려있던 Header 모달의 overflow = "hidden" 세팅이 강제 초기화 되어버리거나 
+   * 평생 스크롤이 죽어버릴 수 있습니다.
+   * -> 따라서 여기서 두 상태를 단 하나의 dependency array에 넣고 단독 컨트롤/통합 관리합니다.
    */
   useEffect(() => {
     if (isMobileMenuOpen || isSearchOpen) {

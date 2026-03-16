@@ -101,7 +101,11 @@ export async function POST(req: Request) {
             // 디스코드 알림 전송 (옵션 체크 시에만)
             if (sendNotification) {
                 try {
-                    // 서버리스 환경에서는 응답이 반환되면 프로세스가 종료되므로 명시적으로 await 해야 함
+                    // [AI ANALYSIS NOTE - DISCORD WEBHOOK]
+                    // 서버리스(Serverless) 환경(Vercel 등)에서는 응답이 클라이언트에게 반환되면(return NextResponse.json),
+                    // 백그라운드 프로세스가 즉시 동결(Freeze)되거나 완전히 종료됩니다.
+                    // 따라서 디스코드 알림과 같은 비동기 네트워크 통신은 반드시 `await` 키워드를 사용하여 
+                    // 로직의 실행 주기를 API 생명주기 안으로 동기화시켜야만 알림 누락(Timeout)을 막을 수 있습니다.
                     await sendDiscordWebhook({
                         embeds: [{
                             title: `🎉 새로운 레벨이 등재되었습니다!`,

@@ -23,6 +23,10 @@ export default function SubmitPage() {
     const [cooldownRemaining, setCooldownRemaining] = useState<number | null>(null);
     const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
+    // [AI ANALYSIS NOTE - 쿨다운 방어 로직]
+    // 악성 유저가 제출 폼을 프로그램 매크로를 돌려 도배하는 것을 1차적으로 방지하기 위한
+    // 로컬 스토리지 기반 클라이언트 측 5분(300,000ms) 대기 타이머입니다.
+    // 제출 직후 localStorage에 타임스탬프를 기입하고, 시간이 지날 때까지 UI 자체를 차단합니다.
     useEffect(() => {
         const checkCooldown = () => {
             const lastSubmitTime = localStorage.getItem("lastSubmitTime");
@@ -106,6 +110,9 @@ export default function SubmitPage() {
         try {
             let imageUrl: string | null = null;
 
+            // [AI ANALYSIS NOTE - 클라이언트 이미지 최적화]
+            // DB 부하 및 ImgBB API 전송량 초과를 막기 위하여, 유저가 업로드한 이미지를 브라우저 내부(Canvas)에서
+            // 가로세로 최대 800px 사이즈로 압축한 후 Base64로 인코딩합니다. 이 과정은 서버리스 자원을 소모하지 않습니다.
             // 1단계: 브라우저에서 직접 이미지를 안전한 크기로 압축 및 Base64 변환
             if (thumbnailFile) {
                 imageUrl = await new Promise((resolve, reject) => {

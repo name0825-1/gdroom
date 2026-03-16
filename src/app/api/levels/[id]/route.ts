@@ -108,6 +108,8 @@ export async function PUT(
                 // 디스코드 알림 전송 (옵션 체크 시 & 의미 있는 정보/순위 변경 시에만)
                 if (sendNotification) {
                     try {
+                        // [AI ANALYSIS NOTE - DISCORD WEBHOOK]
+                        // 서버리스 타임아웃 방지를 위해 명시적으로 await 처리하여 응답 반환 전에 알림 전송 완료를 보장합니다.
                         const descriptionLines = [
                             `**${updated.name}** 레벨 정보가 업데이트 되었습니다.`,
                             `순위 변동: **#${oldRank}** ➔ **#${newRank}**`
@@ -149,24 +151,25 @@ export async function PUT(
 
             // 순위 변경이 없는 기본 정보 수정에 대한 알림
             if (sendNotification && Object.keys(updateData).length > 0) {
-                 try {
-                     await sendDiscordWebhook({
-                         embeds: [{
-                             title: `🔄 레벨 정보 업데이트`,
-                             description: `**${updated.name}** (#${updated.rank}) 레벨의 세부 정보가 수정되었습니다.`,
-                             color: 0xf59e0b, // Amber-500
-                             fields: [
-                                 { name: "Level ID", value: String(updated.verifier), inline: true },
-                                 { name: "Publisher", value: String(updated.creator), inline: true }
-                             ],
-                             thumbnail: updated.imageUrl ? { url: updated.imageUrl } : undefined,
-                             footer: { text: "GDRMCL 변동 알림" },
-                             timestamp: new Date().toISOString()
-                         }]
-                     });
-                 } catch (e) {
-                     console.error("Discord notification error:", e);
-                 }
+                try {
+                    // [AI ANALYSIS NOTE] 수동 배포 환경에서 백그라운드 태스크 누락을 막기 위한 await 필수
+                    await sendDiscordWebhook({
+                        embeds: [{
+                            title: `🔄 레벨 정보 업데이트`,
+                            description: `**${updated.name}** (#${updated.rank}) 레벨의 세부 정보가 수정되었습니다.`,
+                            color: 0xf59e0b, // Amber-500
+                            fields: [
+                                { name: "Level ID", value: String(updated.verifier), inline: true },
+                                { name: "Publisher", value: String(updated.creator), inline: true }
+                            ],
+                            thumbnail: updated.imageUrl ? { url: updated.imageUrl } : undefined,
+                            footer: { text: "GDRMCL 변동 알림" },
+                            timestamp: new Date().toISOString()
+                        }]
+                    });
+                } catch (e) {
+                    console.error("Discord notification error:", e);
+                }
             }
 
             return updated;
@@ -239,6 +242,7 @@ export async function DELETE(
             // 디스코드 알림 전송 (옵션 체크 시에만)
             if (sendNotification) {
                 try {
+                    // [AI ANALYSIS NOTE] 백그라운드 처리 시 Vercel 타임아웃으로 인한 전송 실패를 방지하는 await
                     await sendDiscordWebhook({
                         embeds: [{
                             title: `🗑️ 레벨 삭제됨`,

@@ -1,3 +1,20 @@
+/**
+ * 관리자 이미지 업로드 API 라우트
+ *
+ * [개요]
+ * 관리자 대시보드의 EditLevelModal에서 레벨 썸네일 이미지를 업로드할 때 사용됩니다.
+ * FormData 형식으로 수신한 이미지 파일을 Base64로 변환 후 ImgBB에 업로드하고,
+ * 반환된 URL을 해당 레벨의 DB imageUrl 필드에 직접 업데이트합니다.
+ *
+ * [AI ANALYSIS NOTE - 비교: submissions/upload/route.ts와의 차이]
+ * - 이 파일: 관리자 전용 (getSession 인증 필수, 5MB 제한, GIF 허용, DB에 직접 업데이트)
+ * - submissions/upload: 유저 제출용 (인증 불필요, 2MB 제한, GIF 불허, URL만 반환)
+ *
+ * [보안]
+ * - 관리자 세션 인증 필수 (getSession().isAdmin)
+ * - 파일 크기 5MB 제한
+ * - JPG, PNG, WebP, GIF만 허용
+ */
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";

@@ -1,3 +1,27 @@
+/**
+ * 관리자 대시보드 메인 페이지
+ *
+ * [개요]
+ * 레벨 관리(삽입/수정/삭제)와 유저 제출 기록 확인을 담당하는 관리자 전용 페이지입니다.
+ * 페이지 로드 시 /api/auth/check로 관리자 인증 여부를 확인하고,
+ * 비인증 상태면 로그인 페이지로 리다이렉트합니다.
+ *
+ * [핵심 아키텍처 - 더블 클릭 방지]
+ * 모든 데이터 변이(Mutation) 핸들러는 `saving` 상태로 중복 실행을 차단합니다.
+ * saving !== null이면 모든 변이 핸들러가 즉시 return하며, UI 버튼도 disabled 처리됩니다.
+ * Two-Phase Raw SQL Shifting이 진행 중일 때 중복 요청이 들어오면
+ * 데이터 행이 +10000 영역에 유실되는 치명적 버그가 발생하기 때문입니다.
+ *
+ * [탭 구조]
+ * - 레벨 관리 탭: 200개 레벨 목록 + 삽입/수정/삭제 모달
+ * - 제출된 기록 탭: 유저 제출 목록 + 읽음/삭제/정보복사 기능
+ *
+ * [제출 정보 복사 → 레벨 삽입 워크플로우]
+ * 1. 제출된 기록 탭에서 "정보 복사" 클릭 → copiedSubmissionData에 저장
+ * 2. 레벨 관리 탭에서 "새로운 레벨 중간 삽입" 클릭 → InsertLevelModal 열림
+ * 3. "복사한 제출 정보 붙여넣기" 버튼 클릭 → 폼에 자동 채우기
+ * 이 워크플로우로 관리자가 제출 → 등재 과정을 빠르게 처리할 수 있습니다.
+ */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -47,6 +71,9 @@ export default function AdminDashboard() {
         checkAuth();
     }, []);
 
+    // [AI ANALYSIS NOTE - 인증 가드]
+    // 페이지 로드 시 세션 쿠키의 유효성을 서버에 확인합니다.
+    // iron-session 쿠키가 만료되었거나 변조되었으면 로그인 페이지로 리다이렉트합니다.
     const checkAuth = async () => {
         try {
             const res = await fetch("/api/auth/check");
@@ -67,6 +94,9 @@ export default function AdminDashboard() {
         router.push("/");
     };
 
+    // [AI ANALYSIS NOTE - 병렬 데이터 패치]
+    // 레벨 목록과 제출 기록을 Promise.all로 동시에 가져와 네트워크 대기 시간을 절반으로 줄입니다.
+    // cache: "no-store"로 ISR 캐시를 우회하여 항상 최신 데이터를 보장합니다.
     const fetchData = async () => {
         setLoading(true);
         setError(null);
@@ -92,7 +122,10 @@ export default function AdminDashboard() {
         }
     };
 
-    // Submissions Handlers
+    // [AI ANALYSIS NOTE - 제출 → 등재 브릿지 기능]
+    // 제출 기록의 핵심 정보(레벨명, 퍼블리셔, 레벨ID)를 copiedSubmissionData 상태에 저장합니다.
+    // 이후 InsertLevelModal에서 "복사한 제출 정보 붙여넣기" 버튼으로 폼에 자동 채울 수 있습니다.
+    // 동시에 해당 제출을 "읽음" 상태로 전환하여 미읽음 뱃지를 제거합니다.
     const handleCopyInfo = (sub: Submission) => {
         setCopiedSubmissionData({
             levelName: sub.levelName,
@@ -142,8 +175,15 @@ export default function AdminDashboard() {
     };
 
     // Levels Handlers
+    // [AI ANALYSIS NOTE - RACE CONDITION 방지 (더블클릭 캐치 로직)]
+    // 레벨 삽입/수정 시 백엔드에서는 Two-Phase Raw SQL Shifting을 수행합니다.
+    // 만약 관리자가 폼 제출 버튼을 1초 안에 2번 눌러 API Request가 2번 날아가면,
+    // 첫 번째 요청이 DB Lock을 걸기 전에 두 번째 요청이 임시 대피(+10000)를 중복 실행하게 되어
+    // 수많은 데이터 행(rank)이 증발하거나 10000위 밖으로 유실되는 치명적 버그가 발생할 수 있습니다.
+    // 따라서 `if (saving !== null) return;` 구문을 통해 프론트엔드 레벨에서 API가 종료될 때까지 
+    // 하위 버튼과 상태 변이를 강제로 차단(disabled)해야 합니다.
     const handleSaveList = async (level: Level, sendNotification: boolean = true) => {
-        if (saving !== null) return;
+        if (saving !== null) return; // [CRITICAL] 더블 클릭 방지 방화벽
         setSaving(level.id);
         try {
             const payload = { ...level, sendNotification };
@@ -168,8 +208,12 @@ export default function AdminDashboard() {
         }
     };
 
+    // [AI ANALYSIS NOTE - 레벨 삭제 + Two-Phase 당기기]
+    // 삭제 시 백엔드에서 해당 rank 아래의 모든 레벨을 -1씩 당기고,
+    // 빈 200위에 새 플레이스홀더("--")를 생성합니다.
+    // saving 가드로 더블 클릭 방지 필수.
     const handleDeleteLevel = async (level: Level, sendNotification: boolean = true) => {
-        if (saving !== null) return;
+        if (saving !== null) return; // [CRITICAL] 더블 클릭 방지
         setSaving(level.id);
         try {
             const res = await fetch(`/api/levels/${level.id}?sendNotification=${sendNotification}`, { method: "DELETE" });

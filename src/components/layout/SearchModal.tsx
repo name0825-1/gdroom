@@ -11,6 +11,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { Search, X, Loader2, ImageIcon } from "lucide-react";
 
 // 레벨 데이터 타입 정의
@@ -175,7 +176,14 @@ export function SearchModal({
                                         {/* 레벨 썸네일 이미지 */}
                                         <div className="w-12 h-8 rounded border border-zinc-700 overflow-hidden shrink-0 bg-zinc-900 flex items-center justify-center relative">
                                             {level.imageUrl ? (
-                                                <img src={level.imageUrl} className="w-full h-full object-cover" alt="" />
+                                                <Image 
+                                                    src={level.imageUrl} 
+                                                    alt={level.name || "Level Thumbnail"}
+                                                    fill
+                                                    sizes="48px"
+                                                    className="object-cover" 
+                                                    unoptimized={level.imageUrl.endsWith('.gif')}
+                                                />
                                             ) : (
                                                 <ImageIcon className="w-4 h-4 text-zinc-700" />
                                             )}

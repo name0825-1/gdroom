@@ -1,3 +1,15 @@
+/**
+ * 유저 썸네일 업로드 API 라우트
+ *
+ * [개요]
+ * 일반 사용자가 기록 제출 시 첨부하는 썸네일 이미지를 ImgBB에 업로드합니다.
+ * 관리자 인증이 필요하지 않으므로 누구나 접근 가능합니다.
+ *
+ * [AI ANALYSIS NOTE - 보안 제한]
+ * - 관리자 업로드(api/upload)보다 제한이 엄격: 2MB, GIF 불허
+ * - 인증 없이 접근 가능하므로 파일 크기/타입 검증이 더욱 중요
+ * - Rate Limiting은 submissions/route.ts POST에서 IP 기반으로 별도 처리
+ */
 import { NextResponse } from "next/server";
 import { uploadToImgBB } from "@/lib/imgbb";
 
