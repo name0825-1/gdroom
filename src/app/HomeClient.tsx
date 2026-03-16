@@ -25,7 +25,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, Loader2 } from "lucide-react";
 
 interface Level {
     id: number;
@@ -84,6 +84,7 @@ function LevelCard({
     priority?: boolean;
 }) {
     const [copied, setCopied] = useState(false);
+    const [imageLoaded, setImageLoaded] = useState(false);
 
     const handleCopyId = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -112,15 +113,24 @@ function LevelCard({
             {showImage && (
                 <div className="shrink-0 flex items-center justify-center bg-zinc-900 border border-zinc-800/80 rounded-md overflow-hidden aspect-video w-full sm:w-48 md:w-56 relative shadow-md group-hover:border-cyan-500/30 transition-colors">
                     {level.imageUrl ? (
-                        <Image
-                            src={level.imageUrl}
-                            alt={level.name || "Level Thumbnail"}
-                            fill
-                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 192px, 224px"
-                            className="object-cover"
-                            priority={priority}
-                            unoptimized={level.imageUrl.endsWith('.gif')} // GIF는 최적화 제외
-                        />
+                        <>
+                            {/* 로딩 스피너: 이미지가 로드되기 전까지 표시 */}
+                            {!imageLoaded && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 z-10">
+                                    <Loader2 className="h-6 w-6 text-cyan-500 animate-spin" />
+                                </div>
+                            )}
+                            <Image
+                                src={level.imageUrl}
+                                alt={level.name || "Level Thumbnail"}
+                                fill
+                                sizes="(max-width: 640px) 100vw, (max-width: 768px) 192px, 224px"
+                                className={`object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                priority={priority}
+                                unoptimized={level.imageUrl.endsWith('.gif')}
+                                onLoad={() => setImageLoaded(true)}
+                            />
+                        </>
                     ) : (
                         <>
                             <ImageIcon className="h-8 w-8 text-zinc-700" />
